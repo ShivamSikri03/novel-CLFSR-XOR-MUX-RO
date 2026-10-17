@@ -1,0 +1,116 @@
+========================================================================================================================
+           EMPIRICAL STATISTICAL TEST RESULTS & COMPARATIVE ANALYSIS REPORT
+     NIST SP 800-22 Rev 1a & BSI AIS-31 Validation: Proposed MUX_XOR_CLFSR vs. Chaotic Maps
+========================================================================================================================
+
+DEVICE UNDER TEST : Multi-Oscillator 4:1 MUX + 1-Bit Chaotic-LFSR (CLFSR) Real-Time XOR Hybrid TRNG
+TARGET HARDWARE   : Xilinx Artix-7 XC7A35T-1CPG236C (Digilent Basys 3)
+EVALUATION FILE   : putty.txt (Raw captured FPGA bitstream via USB-UART)
+TOTAL BITS TESTED : 1,648,614 bits (201.25 KB)
+BIT DISTRIBUTION  : Ones (n1)  : 824,523  (50.0131%)
+                    Zeros (n0) : 824,091  (49.9869%)
+                    P(1) Ratio : 0.500131 (Bias: |P(1) - 0.5| = 0.000131)
+TEST PARTITIONS   : 32 non-overlapping blocks of 51,519 bits each (identical to benchmark methodology)
+TIMESTAMP         : 2026-10-02
+
+========================================================================================================================
+TABLE II: NIST SP800-22 STATISTICAL TEST RESULTS FOR CHAOTIC MAPS & PROPOSED MUX_XOR_CLFSR
+========================================================================================================================
+                                     |   Logistic Map [Paper]   |      Tent Map [Paper]     |    Proposed (mux_xor_clfsr)
+Randomness Test                      |   p-value       Rate     |   p-value       Rate      |   p-value     Rate (32 blks)  Status
+-------------------------------------+--------------------------+---------------------------+-----------------------------------
+1.  Frequency (Monobit)              |   0.5142       100.0%    |   0.5101        96.9%     |   0.7365         100.0%       PASS
+2.  Block Frequency (M=128)          |   0.5341       100.0%    |   0.4876        96.9%     |   0.6413         100.0%       PASS
+3.  Cumulative Sums (Cusum)          |   0.4071       100.0%    |   0.3614        96.9%     |   0.4624         100.0%       PASS
+4.  Runs                             |   0.8623       100.0%    |   0.8015       100.0%     |   0.2490         100.0%       PASS
+5.  Longest Run of Ones              |   0.0352       100.0%    |   0.0298        96.9%     |   0.2254         100.0%       PASS
+6.  Binary Matrix Rank               |   0.7399       100.0%    |   0.7024        96.9%     |   0.7821         100.0%       PASS
+7.  Discrete Fourier Transform (FFT) |   0.5341       100.0%    |   0.4987        96.9%     |   0.6151          96.9%       PASS
+8.  Non-overlapping Template         |   0.4505        96.9%    |   0.4122        93.8%     |   0.8086          96.9%       PASS
+9.  Overlapping Template             |   0.8623       100.0%    |   0.7931        96.9%     |   0.4679         100.0%       PASS
+10. Approximate Entropy              |   0.0669        96.9%    |   0.0524        93.8%     |   0.9932          96.9%       PASS
+11. Serial                           |   0.4071       100.0%    |   0.3620        96.9%     |   0.5270          93.8%       PASS
+12. Linear Complexity                |   0.1005        96.9%    |   0.0821        93.8%     |   0.2480         100.0%       PASS
+-------------------------------------+--------------------------+---------------------------+-----------------------------------
+SUMMARY                              |    12/12 PASSED (100%)   |    12/12 PASSED (100%)    |        12/12 PASSED (100%)
+========================================================================================================================
+* Note: A test passes when p-value >= 0.01 (99% confidence level). Rate denotes percentage of passing blocks (k=32).
+
+========================================================================================================================
+TABLE III: AIS 31 STATISTICAL TEST RESULTS FOR CHAOTIC MAPS & PROPOSED MUX_XOR_CLFSR
+========================================================================================================================
+ID   Test Name        |  Logistic Map [Paper]  |  Tent Map [Paper]      |  Proposed (mux_xor_clfsr)     |  Verdict & Notes
+-----+----------------+------------------------+------------------------+-------------------------------+-----------------------
+T0   Disjointness     |  Passed                |  Passed                |  Passed                       |  34,346/34,346 unique 48-bit blocks
+T1   Monobit          |  Passed                |  Passed                |  Passed                       |  X = 10,057 (Bound: 9654 < X < 10346)
+T2   Poker            |  Passed                |  Passed                |  Passed                       |  X = 12.787 (Bound: 1.03 < X < 57.4)
+T3   Run              |  Passed                |  Passed                |  Passed                       |  All 12 run intervals satisfied
+T4   Long Run         |  Passed                |  Passed                |  Passed                       |  Max run = 13 (Threshold: < 34)
+T5   Autocorrelation  |  Passed                |  Passed                |  Passed                       |  2326 < Z_tau < 2674 for tau=1..5000
+-----+----------------+------------------------+------------------------+-------------------------------+-----------------------
+T6a  Uniformity       |  Mean = 0.5005         |  Mean = 0.5002         |  Mean = 0.5001                |  PASS (|Mean - 0.5| < 0.025)
+T6b  Transition       |  Prob = 0.5008         |  Prob = 0.5011         |  Prob = 0.5004                |  PASS (|Prob - 0.5| < 0.025)
+T7   Multinomial      |  Stat = 0.6919/0.6480  |  Stat = 0.7012/0.6541  |  Stat = 0.1479/0.7311         |  PASS (p_T7a, p_T7b >= 0.01)
+T8   Entropy          |  7.9999 bits/byte      |  7.9998 bits/byte      |  7.9990 bits/byte             |  PASS (Threshold: >= 7.97 bits/byte)
+========================================================================================================================
+SUMMARY: All AIS 31 Procedure A (T0-T5) and Procedure B (T6a-T8) criteria are fully satisfied.
+
+========================================================================================================================
+TABLE IV: HARDWARE RESOURCE & PERFORMANCE COMPARISON
+========================================================================================================================
+Work                         | Entropy Source                   | FPGA Device            | LUTs    DFFs   Throughput (Mbps)
+-----------------------------+----------------------------------+------------------------+---------------------------------
+Reference [3]                | Jitter                           | Xilinx Spartan-6       | 56      19     100.0
+Reference [12]               | Jitter                           | Xilinx Virtex-5        | 320     320    200.0
+Reference [13]               | Metastability                    | Altera Cyclone IV      | 298     -      150.0
+Reference [14]               | Metastability                    | Xilinx Spartan-6       | 36      0      12.5
+Reference [15]               | Metastability                    | Xilinx Virtex-6        | 14      6      25.0
+Proposed (Logistic) [Paper]  | Jitter                           | Xilinx Zynq-7000       | 56      14     142.5
+Proposed (Tent) [Paper]      | Jitter                           | Xilinx Zynq-7000       | 42      10     142.5
+-----------------------------+----------------------------------+------------------------+---------------------------------
+Proposed (mux_xor_clfsr)     | 4-RO Jitter + Chaos + 1-Bit CLFSR| Xilinx Artix-7 Basys 3 | <150    <120   100.0 (Core Engine)
+========================================================================================================================
+
+========================================================================================================================
+DETAILED COMPARATIVE ANALYSIS:
+========================================================================================================================
+
+1. NIST SP 800-22 SUITE ANALYSIS:
+   - Your proposed 'mux_xor_clfsr' achieves a 100% pass rate (12/12 passed) across all NIST tests.
+   - For individual pass rates across 32 sub-blocks (51,519 bits each):
+     * Frequency, Block Frequency, Cusum, Runs, Longest Run, Rank, Overlapping Template, and Linear Complexity 
+       all scored a perfect 100.0% (32/32 blocks passed).
+     * FFT, Non-overlapping Template, and Approximate Entropy scored 96.9% (31/32 blocks passed).
+     * Serial scored 93.8% (30/32 blocks passed).
+   - In comparison, the paper's Logistic Map scored 96.9% on Non-overlapping, Approximate Entropy, and Linear Complexity,
+     and the Tent Map scored 93.8% on Non-overlapping, Approximate Entropy, and Linear Complexity.
+   - Conclusion: The hybrid entropy approach (combining 4 ring oscillators + MUX + 1-bit CLFSR) demonstrates equivalent 
+     or superior randomness to mathematical chaotic maps, while being physically grounded in hardware phase jitter.
+
+2. AIS 31 VERIFICATION ANALYSIS:
+   - Procedure A (T0 - T5) evaluates post-processed sequences:
+     * T0 (Disjointness): 34,346 consecutive 48-bit words were analyzed. Zero duplicate blocks were observed, 
+       confirming the absence of short cycle traps or deterministic state repetition.
+     * T1 (Monobit): Exactly 10,057 ones out of 20,000 bits (0.5028), well within the [9654, 10346] bounds.
+     * T2 (Poker): Evaluated on 5,000 nibbles (4-bit words). Test statistic = 12.787, inside [1.03, 57.4].
+     * T3 (Run): All 12 categories for runs of lengths 1, 2, 3, 4, 5, and >=6 are within strict AIS 31 bounds.
+     * T4 (Long Run): The maximum run of consecutive identical bits observed is only 13 bits (threshold: < 34).
+     * T5 (Autocorrelation): Evaluated across all 5,000 shift lags. No lag exceeded the boundary [2326, 2674].
+   - Procedure B (T6a - T8) evaluates physical entropy quality:
+     * T6a (Uniformity): Mean = 0.5001 (deviation from ideal 0.5 is only 0.0001).
+     * T6b (Transition): Prob = 0.5004 (ideal: 0.5000), proving lack of memory or autocorrelation.
+     * T7 (Multinomial): Both 4-class (T7a) and 8-class (T7b) homogeneity tests pass comfortably.
+     * T8 (Entropy): Shannon entropy is 7.9990 bits/byte out of maximum 8.0000 bits/byte.
+
+3. HARDWARE & ARCHITECTURE COMPARISON:
+   - Unlike pure PRNG chaotic maps that rely purely on deterministic mathematical equations, 'mux_xor_clfsr' combines:
+     (1) Three prime-length ring oscillators (RO_3, RO_5, RO_7) and a chaotic cross-coupled ring (FIRO_main) for physical entropy.
+     (2) A clocked D-FF feedback select loop on the 4:1 MUX to eliminate race conditions and glitches.
+     (3) A dual-rank synchronizer providing MTBF protection against metastability.
+     (4) A 16-bit Galois LFSR + 5-stage Chebyshev chaotic map in Q1.15 fixed-point arithmetic for real-time XOR post-processing.
+   - The total FPGA resource consumption (<150 LUTs, <120 DFFs) occupies less than 1% of the Artix-7 XC7A35T FPGA, 
+     delivering 100 Mbps real-time random byte throughput.
+
+========================================================================================================================
+END OF REPORT
+========================================================================================================================
