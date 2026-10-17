@@ -1,0 +1,27 @@
+# Simulator & Compiler Binaries
+*.vvp
+*.out
+*.exe
+*.o
+
+# Vivado / EDA Temporary & Cache Files
+*.jou
+*.log
+*.dcp
+.Xil/
+hd_visual/
+*.str
+
+# Python Bytecode & Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+
+# OS Artifacts
+.DS_Store
+Thumbs.db
+# Temporary Scripts
+push_to_github.bat
+
