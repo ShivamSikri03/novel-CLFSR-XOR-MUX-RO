@@ -13,7 +13,7 @@ Complete hardware source repository, Verilog HDL modules, timing and pin constra
 ## 📑 Table of Contents
 1. [Architecture Overview](#-architecture-overview)
 2. [Theory of Operation & Hardware Datapath](#-theory-of-operation--hardware-datapath)
-3. [Source Code Index & File Paths](#-source-code-index--file-paths)
+3. [Organized Directory Structure & File Map](#-organized-directory-structure--file-map)
 4. [FPGA Pinout & Vivado Constraints](#-fpga-pinout--vivado-constraints)
 5. [Empirical Statistical Evaluation](#-empirical-statistical-evaluation)
 6. [Comparative Benchmark Against Literature](#-comparative-benchmark-against-literature)
@@ -86,10 +86,10 @@ flowchart TD
 ## 🔬 Theory of Operation & Hardware Datapath
 
 ### 1. Asynchronous Ring Oscillator Bank
-- **3-Stage Ring (`RO_3.v`):** Inverting chain with nominal period $\tau_3 \approx 3 \times t_{pd}$. Runs at the highest frequency ($\sim 400\text{--}500\text{ MHz}$).
-- **5-Stage Ring (`RO_5.v`):** Inverting chain with nominal period $\tau_5 \approx 5 \times t_{pd}$ ($\sim 250\text{--}300\text{ MHz}$).
-- **7-Stage Ring (`RO.v`):** Inverting chain with nominal period $\tau_7 \approx 7 \times t_{pd}$ ($\sim 180\text{--}220\text{ MHz}$).
-- **Chaotic Ring (`FIRO_main.v`):** Fibonacci Inverter Ring Oscillator featuring cross-coupled XOR/inverter feedback to induce chaotic phase-frequency trajectories and prevent harmonic locking.
+- **3-Stage Ring (`code/RO_3.v`):** Inverting chain with nominal period $\tau_3 \approx 3 \times t_{pd}$. Runs at the highest frequency ($\sim 400\text{--}500\text{ MHz}$).
+- **5-Stage Ring (`code/RO_5.v`):** Inverting chain with nominal period $\tau_5 \approx 5 \times t_{pd}$ ($\sim 250\text{--}300\text{ MHz}$).
+- **7-Stage Ring (`code/RO.v`):** Inverting chain with nominal period $\tau_7 \approx 7 \times t_{pd}$ ($\sim 180\text{--}220\text{ MHz}$).
+- **Chaotic Ring (`code/FIRO_main.v`):** Fibonacci Inverter Ring Oscillator featuring cross-coupled XOR/inverter feedback to induce chaotic phase-frequency trajectories and prevent harmonic locking.
 - All oscillators include `(* DONT_TOUCH = "TRUE" *)` and `(* KEEP = "TRUE" *)` Vivado synthesis attributes to prevent logic minimization.
 
 ### 2. Clocked 4:1 MUX with D-FF Feedback
@@ -126,26 +126,67 @@ This guarantees that even under extreme environmental conditions, output min-ent
 
 ---
 
-## 📂 Source Code Index & File Paths
+## 📂 Organized Directory Structure & File Map
+
+```
+novel-CLFSR-XOR-MUX-RO/
+├── code/                                     # Verilog HDL source modules & constraints
+│   ├── top.v                                 # Top-level FPGA integration for Digilent Basys 3
+│   ├── ro_mux_clfsr_trng_top.v               # Standalone core integration wrapper
+│   ├── clfsr_trng_single.v                   # 1-Bit CLFSR post-processing core
+│   ├── RO_3.v                                # 3-Stage Inverter Ring Oscillator
+│   ├── RO_5.v                                # 5-Stage Inverter Ring Oscillator
+│   ├── RO.v                                  # 7-Stage Inverter Ring Oscillator
+│   ├── FIRO_main.v                           # Fibonacci Chaotic Ring Oscillator
+│   ├── D_FF.v                                # Preserved D-Flip-Flop primitive
+│   ├── uart_tx.v                             # 115,200 Baud UART transmitter
+│   ├── basys3.xdc                            # FPGA timing & physical pinout constraints
+│   └── tb_ro_mux_clfsr_trng_top.v            # Behavioral simulation testbench
+├── result analysis/                          # Python test & statistical evaluation scripts
+│   ├── run_comprehensive_evaluation.py       # Full 14-module NIST SP 800-22 & 90B evaluation suite
+│   ├── run_paper_tests.py                    # Literature comparison benchmark runner
+│   ├── run_nist_tests.py                     # NIST SP 800-22 runner
+│   ├── run_nist_90b_tests.py                 # NIST SP 800-90B min-entropy runner
+│   └── run_advanced_trng_tests.py            # Autocorrelation, Shannon entropy & FFT tests
+├── results/                                  # Empirical logs, data captures & reports
+│   ├── putty.txt                             # 1,648,614 raw bits captured live from Basys 3 FPGA
+│   ├── comprehensive_evaluation_report.txt   # Full numerical evaluation report
+│   ├── comparison_results.txt                # Benchmark comparisons against published works
+│   ├── throughput_results.txt                # Hardware throughput calculations
+│   ├── PAPER_TABLES.tex                      # Publication-ready LaTeX tables
+│   ├── PAPER_TEST_RESULTS.md                 # Detailed statistical comparison report
+│   ├── PAPER_TEST_RESULTS.txt                # Raw benchmark outputs
+│   ├── putty_nist_results.txt                # NIST test run outputs
+│   └── putty_advanced_results.txt            # Autocorrelation lag results
+├── clfsr_trng_single_block_diagram.html      # Interactive CLFSR datapath visualizer
+├── puf_trng_architecture.html                # Interactive PUF + TRNG System architecture viewer
+├── MUX_XOR_CLFSR_Complete_Documentation.pdf  # 20-Page comprehensive engineering report
+├── paper_for_comparision.pdf                 # Literature reference paper
+├── FPGA_Implementation_of_a_Hybrid_Chaotic_True_Random_Number_Generator_Using_Fibonacci_Ring_Oscillator (1).pdf
+├── README_REPORT.md                          # Full technical report
+└── README.md                                 # Primary repository overview
+```
+
+### Detailed File Index
 
 | File Path | Module / Type | Description |
 | :--- | :--- | :--- |
-| [`top.v`](file:///top.v) | `module top` | **Top-Level FPGA Integration Module**: Integrates 4 ring oscillators, dynamic 4:1 MUX, D-FF feedback register, dual-rank synchronizer, CLFSR core, UART streaming engine, and LEDs. |
-| [`ro_mux_clfsr_trng_top.v`](file:///ro_mux_clfsr_trng_top.v) | `module ro_mux_clfsr_trng_top` | **Core Hardware Integration Wrapper**: Standalone core top suitable for behavioral testbench simulation and verification without board-level I/O. |
-| [`clfsr_trng_single.v`](file:///clfsr_trng_single.v) | `module clfsr_trng_single` | **1-Bit CLFSR Post-Processing Core**: 16-bit Galois LFSR + 5-stage pipelined Chebyshev map ($X_{n+1} = 1 - 2X_n^2$) + serial-to-parallel 8-bit byte assembler (`R_Out`). |
-| [`RO_3.v`](file:///RO_3.v) | `module RO_3` | **3-Stage Inverter Ring Oscillator**: High-frequency entropy source ($f \approx 400\text{--}500\text{ MHz}$) with `DONT_TOUCH` and enable control. |
-| [`RO_5.v`](file:///RO_5.v) | `module RO_5` | **5-Stage Inverter Ring Oscillator**: Medium-frequency entropy source ($f \approx 250\text{--}300\text{ MHz}$). |
-| [`RO.v`](file:///RO.v) | `module RO` | **7-Stage Inverter Ring Oscillator**: Low-frequency entropy source ($f \approx 180\text{--}220\text{ MHz}$). |
-| [`FIRO_main.v`](file:///FIRO_main.v) | `module FIRO_main` | **Fibonacci Chaotic Ring Oscillator**: Cross-coupled inverter and XOR feedback ring generating chaotic phase dynamics. |
-| [`D_FF.v`](file:///D_FF.v) | `module D_FF` | **D-Flip-Flop Primitive**: Synchronous single-bit D-FF primitive with synthesis preservation used for feedback registration and synchronizers. |
-| [`uart_tx.v`](file:///uart_tx.v) | `module uart_tx` | **UART Transmitter**: 115,200 Baud 8N1 serial transmitter driven by the 100 MHz clock (`CLKS_PER_BIT = 868`). |
-| [`basys3.xdc`](file:///basys3.xdc) | Constraints File | **Master FPGA Constraints**: 100 MHz clock timing, pin mappings (W5, U18, V17, A18, LEDs), and `ALLOW_COMBINATORIAL_LOOPS` declarations. |
-| [`tb_ro_mux_clfsr_trng_top.v`](file:///tb_ro_mux_clfsr_trng_top.v) | `module tb_ro_mux_clfsr_trng_top` | **Simulation Testbench**: Functional verification testbench for behavioral simulation in Icarus Verilog or Vivado Simulator. |
-| [`putty.txt`](file:///putty.txt) | Hardware Dataset | **1,648,614 Raw Hardware Bits**: Serial stream captured live from the Digilent Basys 3 FPGA hardware via USB-UART bridge. |
-| [`run_comprehensive_evaluation.py`](file:///run_comprehensive_evaluation.py) | Python Script | **Comprehensive NIST Evaluation Suite**: Executes NIST SP 800-22, NIST SP 800-90B min-entropy, Shannon entropy, autocorrelation, and FFT. |
-| [`run_paper_tests.py`](file:///run_paper_tests.py) | Python Script | **Comparative Benchmark Suite**: Automated evaluation comparing test metrics against published academic literature. |
-| [`comprehensive_evaluation_report.txt`](file:///comprehensive_evaluation_report.txt) | Text Report | **Complete Numerical Test Report**: Full results including p-values, autocorrelation coefficients, and pass rates. |
-| [`PAPER_TABLES.tex`](file:///PAPER_TABLES.tex) | LaTeX Document | **Publication-Ready LaTeX Tables**: Formatted tables ready for academic paper submissions. |
+| [`code/top.v`](file:///code/top.v) | `module top` | **Top-Level FPGA Integration Module**: Integrates 4 ring oscillators, dynamic 4:1 MUX, D-FF feedback register, dual-rank synchronizer, CLFSR core, UART streaming engine, and LEDs. |
+| [`code/ro_mux_clfsr_trng_top.v`](file:///code/ro_mux_clfsr_trng_top.v) | `module ro_mux_clfsr_trng_top` | **Core Hardware Integration Wrapper**: Standalone core top suitable for behavioral testbench simulation and verification without board-level I/O. |
+| [`code/clfsr_trng_single.v`](file:///code/clfsr_trng_single.v) | `module clfsr_trng_single` | **1-Bit CLFSR Post-Processing Core**: 16-bit Galois LFSR + 5-stage pipelined Chebyshev map ($X_{n+1} = 1 - 2X_n^2$) + serial-to-parallel 8-bit byte assembler (`R_Out`). |
+| [`code/RO_3.v`](file:///code/RO_3.v) | `module RO_3` | **3-Stage Inverter Ring Oscillator**: High-frequency entropy source ($f \approx 400\text{--}500\text{ MHz}$) with `DONT_TOUCH` and enable control. |
+| [`code/RO_5.v`](file:///code/RO_5.v) | `module RO_5` | **5-Stage Inverter Ring Oscillator**: Medium-frequency entropy source ($f \approx 250\text{--}300\text{ MHz}$). |
+| [`code/RO.v`](file:///code/RO.v) | `module RO` | **7-Stage Inverter Ring Oscillator**: Low-frequency entropy source ($f \approx 180\text{--}220\text{ MHz}$). |
+| [`code/FIRO_main.v`](file:///code/FIRO_main.v) | `module FIRO_main` | **Fibonacci Chaotic Ring Oscillator**: Cross-coupled inverter and XOR feedback ring generating chaotic phase dynamics. |
+| [`code/D_FF.v`](file:///code/D_FF.v) | `module D_FF` | **D-Flip-Flop Primitive**: Synchronous single-bit D-FF primitive with synthesis preservation used for feedback registration and synchronizers. |
+| [`code/uart_tx.v`](file:///code/uart_tx.v) | `module uart_tx` | **UART Transmitter**: 115,200 Baud 8N1 serial transmitter driven by the 100 MHz clock (`CLKS_PER_BIT = 868`). |
+| [`code/basys3.xdc`](file:///code/basys3.xdc) | Constraints File | **Master FPGA Constraints**: 100 MHz clock timing, pin mappings (W5, U18, V17, A18, LEDs), and `ALLOW_COMBINATORIAL_LOOPS` declarations. |
+| [`code/tb_ro_mux_clfsr_trng_top.v`](file:///code/tb_ro_mux_clfsr_trng_top.v) | `module tb_ro_mux_clfsr_trng_top` | **Simulation Testbench**: Functional verification testbench for behavioral simulation in Icarus Verilog or Vivado Simulator. |
+| [`results/putty.txt`](file:///results/putty.txt) | Hardware Dataset | **1,648,614 Raw Hardware Bits**: Serial stream captured live from the Digilent Basys 3 FPGA hardware via USB-UART bridge. |
+| [`result analysis/run_comprehensive_evaluation.py`](file:///result%20analysis/run_comprehensive_evaluation.py) | Python Script | **Comprehensive NIST Evaluation Suite**: Executes NIST SP 800-22, NIST SP 800-90B min-entropy, Shannon entropy, autocorrelation, and FFT. |
+| [`result analysis/run_paper_tests.py`](file:///result%20analysis/run_paper_tests.py) | Python Script | **Comparative Benchmark Suite**: Automated evaluation comparing test metrics against published academic literature. |
+| [`results/comprehensive_evaluation_report.txt`](file:///results/comprehensive_evaluation_report.txt) | Text Report | **Complete Numerical Test Report**: Full results including p-values, autocorrelation coefficients, and pass rates. |
+| [`results/PAPER_TABLES.tex`](file:///results/PAPER_TABLES.tex) | LaTeX Document | **Publication-Ready LaTeX Tables**: Formatted tables ready for academic paper submissions. |
 | [`clfsr_trng_single_block_diagram.html`](file:///clfsr_trng_single_block_diagram.html) | Interactive HTML | **Interactive Block Diagram**: Browser visualization of the CLFSR datapath. |
 | [`puf_trng_architecture.html`](file:///puf_trng_architecture.html) | Interactive HTML | **System Visualizer**: Interactive browser-based visualizer of the PUF + TRNG System Architecture. |
 | [`MUX_XOR_CLFSR_Complete_Documentation.pdf`](file:///MUX_XOR_CLFSR_Complete_Documentation.pdf) | Technical PDF | **Comprehensive 20-Page Documentation**: Engineering report with full design and evaluation analysis. |
@@ -154,7 +195,7 @@ This guarantees that even under extreme environmental conditions, output min-ent
 
 ## ⚡ FPGA Pinout & Vivado Constraints
 
-Targeted for the **Digilent Basys 3** FPGA development board ([`basys3.xdc`](file:///basys3.xdc)):
+Targeted for the **Digilent Basys 3** FPGA development board ([`code/basys3.xdc`](file:///code/basys3.xdc)):
 
 | Signal Name | FPGA Pin | I/O Standard | Description |
 | :--- | :--- | :--- | :--- |
@@ -175,7 +216,7 @@ Targeted for the **Digilent Basys 3** FPGA development board ([`basys3.xdc`](fil
 
 ## 📈 Empirical Statistical Evaluation
 
-All statistical evaluations were performed on **1,648,614 hardware bits** captured live from the Digilent Basys 3 board via serial port (`putty.txt`):
+All statistical evaluations were performed on **1,648,614 hardware bits** captured live from the Digilent Basys 3 board via serial port (`results/putty.txt`):
 
 ### 1. Bit Balance & Basic Statistics
 - **Total Tested Bits:** `1,648,614`
@@ -235,6 +276,7 @@ All statistical evaluations were performed on **1,648,614 hardware bits** captur
 
 ### 1. Behavioral Simulation (Icarus Verilog)
 ```bash
+cd code
 iverilog -o sim_testbench.vvp tb_ro_mux_clfsr_trng_top.v ro_mux_clfsr_trng_top.v clfsr_trng_single.v RO_3.v RO_5.v RO.v FIRO_main.v D_FF.v
 vvp sim_testbench.vvp
 ```
@@ -242,13 +284,13 @@ vvp sim_testbench.vvp
 ### 2. FPGA Implementation in AMD Vivado
 1. Open **Vivado** (2020.1 or newer).
 2. Create a new RTL Project targeting part **`xc7a35tcpg236-1`**.
-3. Add design sources:
+3. Add design sources from the `code/` directory:
    - `top.v` (Set as Top-Level)
    - `clfsr_trng_single.v`
    - `RO_3.v`, `RO_5.v`, `RO.v`, `FIRO_main.v`
    - `D_FF.v`
    - `uart_tx.v`
-4. Add constraints: [`basys3.xdc`](file:///basys3.xdc).
+4. Add constraints: [`code/basys3.xdc`](file:///code/basys3.xdc).
 5. Run **Synthesis** ➔ Run **Implementation** ➔ **Generate Bitstream**.
 6. Open Hardware Manager and program the **Digilent Basys 3**.
 7. Open a serial terminal (PuTTY or Tera Term) at **115,200 Baud (8N1)** on the Basys 3 COM port to receive live random bits.
@@ -257,11 +299,14 @@ vvp sim_testbench.vvp
 
 ## 🧪 Reproducing Statistical Tests
 
-To independently verify the empirical NIST and min-entropy results on the included hardware-captured dataset (`putty.txt`):
+To independently verify the empirical NIST and min-entropy results on the included hardware-captured dataset (`results/putty.txt`):
 
 ```bash
+# Navigate to the evaluation directory
+cd "result analysis"
+
 # Run the full comprehensive evaluation suite (NIST SP 800-22 + 90B + Autocorrelation)
-python run_comprehensive_evaluation.py
+python run_comprehensive_evaluation.py --data "../results/putty.txt"
 
 # Run comparative tests against published literature
 python run_paper_tests.py
